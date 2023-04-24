@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10x10 Matrix Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-container {
+            display: flex;
+            margin: 10px;
+        }
+
+        .btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .value-0 {
+            background-color: #fff;
+        }
+
+        .value-1 {
+            background-color: #f0f;
+        }
+
+        .value-2 {
+            background-color: #0ff;
+        }
+
+        .value-3 {
+            background-color: #ff0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <label for="rows">Rows: </label>
+    <input type="number" id="rows" value="10" min="1">
+    <label for="columns">Columns: </label>
+    <input type="number" id="columns" value="10" min="1">
+    <button id="create-grid">Create Grid</button>
+    <div class="grid">
+        <!-- 100 cells will be created by JavaScript -->
+    </div>
+    <div class="btn-container">
+        <div class="btn value-1">1</div>
+        <div class="btn value-2">2</div>
+        <div class="btn value-3">3</div>
+        <div class="btn value-0">0</div>
+    </div>
+    <button id="generate-cs">Generate C# Code</button>
+    <textarea id="cs-output" style="width: 300px; height: 150px; margin-top: 10px;"></textarea>
+</div>
+
+<script>
+    const grid = document.querySelector('.grid');
+    const buttons = document.querySelectorAll('.btn');
+    let currentValue = 0;
+
+
+    buttons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            currentValue = index + 1;
+        });
+    });
+
+    let isMouseDown = false;
+
+    document.body.addEventListener('mousedown', () => {
+        isMouseDown = true;
+    });
+
+    document.body.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+
+    function handleMouseDown(e) {
+        updateCellValue(e.target);
+    }
+
+    function handleMouseOver(e) {
+        if (isMouseDown) {
+            updateCellValue(e.target);
+        }
+    }
+
+    function updateCellValue(cell) {
+        cell.classList.remove('value-1', 'value-2', 'value-3', 'value-0');
+        cell.classList.add(`value-${currentValue}`);
+    }
+
+    const rowsInput = document.getElementById('rows');
+    const columnsInput = document.getElementById('columns');
+    const createGridButton = document.getElementById('create-grid');
+
+    createGridButton.addEventListener('click', () => {
+        const rows = parseInt(rowsInput.value);
+        const columns = parseInt(columnsInput.value);
+        createGrid(rows, columns);
+    });
+
+    function createGrid(rows, columns) {
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(${columns}, 30px)`;
+        grid.style.gridTemplateRows = `repeat(${rows}, 30px)`;
+
+        for (let i = 0; i < rows * columns; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('mousedown', handleMouseDown);
+            cell.addEventListener('mouseover', handleMouseOver);
+            grid.appendChild(cell);
+        }
+    }
+
+    const generateCsButton = document.getElementById('generate-cs');
+    const csOutput = document.getElementById('cs-output');
+
+    generateCsButton.addEventListener('click', () => {
+        const rows = parseInt(rowsInput.value);
+        const columns = parseInt(columnsInput.value);
+        const matrix = new Array(rows).fill(null).map(() => new Array(columns).fill(0));
+        const cells = grid.querySelectorAll('.cell');
+
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / columns); // Updated
+            const col = index % columns; // Updated
+            let value = 0;
+
+            if (cell.classList.contains('value-1')) {
+                value = 1;
+            } else if (cell.classList.contains('value-2')) {
+                value = 2;
+            } else if (cell.classList.contains('value-3')) {
+                value = 3;
+            }
+
+            matrix[row][col] = value;
+        });
+
+        const csCode = generateCSharpCode(matrix);
+        csOutput.value = csCode;
+    });
+
+    function generateCSharpCode(matrix) {
+        let code = `int[,] matrix = new int[${rows}, ${columns}] {\n`;
+
+
+        for (let row = 0; row < matrix.length; row++) {
+            code += '    {';
+
+            for (let col = 0; col < matrix[row].length; col++) {
+                code += `${matrix[row][col]}, `;
+            }
+
+            code = code.slice(0, -2); // Remove the trailing comma and space
+            code += '},\n';
+        }
+
+        code += '};';
+        return code;
+    }
+
+    createGrid(10, 10);
+
+</script>
+</body>
+</html>
